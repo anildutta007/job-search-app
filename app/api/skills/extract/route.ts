@@ -4,6 +4,7 @@ import { CV } from '@/models/CV';
 import { ExtractedSkills } from '@/models/ExtractedSkills';
 import { analyzeSkillsWithClaude } from '@/lib/skill-analyzer';
 import { scrapeLinkedInProfile } from '@/lib/linkedin-scraper';
+import { callClaudeText } from '@/lib/anthropic-client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,6 +30,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let cvText = cv.originalText;
+
+    // If we only have placeholder text, extract from PDF
+    if (cvText.includes('[PDF Document:') && cv.pdfBase64) {
+      try {
+        const extractPrompt = `Extract all text content from this PDF file encoded in base64. Return only the extracted text, nothing else.
+
+Base64 PDF: ${cv.pdfBase64}`;
+
+        cvText = await callClaudeText(extractPrompt, {
+          model: 'claude-3-5-haiku-20241022',
+          maxTokens: 4000,
+          temperature: 0,
+        });
+      } catch (error) {
+        console.warn('Could not extract PDF text:', error);
+        // Continue with placeholder text
+      }
+    }
+
     let linkedinData: string | undefined;
 
     // If LinkedIn URL provided, scrape it
@@ -42,7 +63,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Analyze skills with Claude
-    const skills = await analyzeSkillsWithClaude(cv.originalText, linkedinData);
+    const skills = await analyzeSkillsWithClaude(cvText, linkedinData);
 
     // Save extracted skills to database
     const extractedSkills = new ExtractedSkills({
