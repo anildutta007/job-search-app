@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 Base64 PDF: ${cv.pdfBase64}`;
 
         cvText = await callClaudeText(extractPrompt, {
-          model: 'claude-opus-4-1',
+          model: 'claude-3-opus-20240229',
           maxTokens: 4000,
           temperature: 0,
         });

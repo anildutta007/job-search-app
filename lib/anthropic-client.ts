@@ -11,7 +11,7 @@ export const anthropic = new Anthropic({
 });
 
 export interface ClaudePromptOptions {
-  model?: 'claude-opus-4-1' | 'claude-opus-4-1';
+  model?: 'claude-3-opus-20240229' | 'claude-3-opus-20240229';
   maxTokens?: number;
   temperature?: number;
 }
@@ -24,7 +24,7 @@ export async function callClaudeJSON<T = any>(
   options: ClaudePromptOptions = {}
 ): Promise<T> {
   const {
-    model = 'claude-opus-4-1',
+    model = 'claude-3-opus-20240229',
     maxTokens = 2000,
     temperature = 0.2,
   } = options;
@@ -68,7 +68,7 @@ export async function callClaudeText(
   options: ClaudePromptOptions = {}
 ): Promise<string> {
   const {
-    model = 'claude-opus-4-1',
+    model = 'claude-3-opus-20240229',
     maxTokens = 2000,
     temperature = 0.7,
   } = options;
