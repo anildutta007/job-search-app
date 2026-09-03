@@ -11,7 +11,7 @@ export const anthropic = new Anthropic({
 });
 
 export interface ClaudePromptOptions {
-  model?: 'claude-3-5-haiku-20241022' | 'claude-3-5-sonnet-20241022';
+  model?: 'claude-3-5-sonnet-20241022' | 'claude-opus-4-1';
   maxTokens?: number;
   temperature?: number;
 }

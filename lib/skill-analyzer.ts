@@ -40,7 +40,7 @@ Be thorough but only include skills that are explicitly mentioned in the text. R
 
   try {
     const result = await callClaudeJSON<SkillAnalysisResult>(prompt, {
-      model: 'claude-3-5-haiku-20241022', // Use faster, cheaper model for text extraction
+      model: 'claude-3-5-sonnet-20241022', // Use sonnet model for text extraction
       maxTokens: 1500,
       temperature: 0.2,
     });
@@ -76,7 +76,7 @@ Return ONLY a JSON array like ["skill1", "skill2", ...]. No markdown, no explana
 
   try {
     const result = await callClaudeJSON<string[]>(prompt, {
-      model: 'claude-3-5-haiku-20241022',
+      model: 'claude-3-5-sonnet-20241022',
       maxTokens: 1000,
       temperature: 0.2,
     });
