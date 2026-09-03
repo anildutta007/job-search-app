@@ -47,10 +47,21 @@ export async function callClaudeJSON<T = any>(
       throw new Error('Unexpected response type from Claude');
     }
 
-    // Try to extract JSON from the response
-    const jsonMatch = textContent.text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+    const responseText = textContent.text;
+
+    // Try to extract JSON from the response (handle markdown-wrapped JSON)
+    let jsonStr = responseText;
+
+    // Remove markdown code blocks if present
+    const markdownMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (markdownMatch) {
+      jsonStr = markdownMatch[1].trim();
+    }
+
+    // Try to find JSON object or array
+    const jsonMatch = jsonStr.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
     if (!jsonMatch) {
-      throw new Error('No JSON found in Claude response');
+      throw new Error(`No JSON found in Claude response: ${responseText.substring(0, 200)}`);
     }
 
     return JSON.parse(jsonMatch[0]) as T;
