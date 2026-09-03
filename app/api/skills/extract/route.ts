@@ -6,8 +6,8 @@ import { analyzeSkillsWithClaude } from '@/lib/skill-analyzer';
 import { scrapeLinkedInProfile } from '@/lib/linkedin-scraper';
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf';
 
-// Set up PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = require('pdfjs-dist/legacy/build/pdf.worker.js');
+// For Node.js environment, we don't need to set up a worker
+// (workers are only needed for browser-side PDF.js)
 
 // PDF extraction function
 async function extractPdfText(pdfBase64: string): Promise<string> {
