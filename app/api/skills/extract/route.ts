@@ -4,38 +4,42 @@ import { CV } from '@/models/CV';
 import { ExtractedSkills } from '@/models/ExtractedSkills';
 import { analyzeSkillsWithClaude } from '@/lib/skill-analyzer';
 import { scrapeLinkedInProfile } from '@/lib/linkedin-scraper';
-import PDFParser from 'pdf2json';
+import * as pdfjs from 'pdfjs-dist/legacy/build/pdf';
+
+// Set up PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = require('pdfjs-dist/legacy/build/pdf.worker.js');
 
 // PDF extraction function
 async function extractPdfText(pdfBase64: string): Promise<string> {
-  return new Promise((resolve) => {
-    try {
-      // Convert base64 to Buffer
-      const pdfBuffer = Buffer.from(pdfBase64, 'base64');
+  try {
+    // Convert base64 to Buffer
+    const pdfBuffer = Buffer.from(pdfBase64, 'base64');
 
-      const pdfParser = new PDFParser(null, 1);
+    // Load PDF document
+    const pdf = await pdfjs.getDocument({ data: pdfBuffer }).promise;
 
-      pdfParser.on('pdfParser_dataError', (errData) => {
-        console.warn('PDF parsing error:', errData.parserError);
-        resolve('');
-      });
+    let fullText = '';
 
-      pdfParser.on('pdfParser_dataReady', () => {
-        try {
-          const text = pdfParser.getRawTextContent();
-          resolve(text || '');
-        } catch (error) {
-          console.warn('Error extracting text from PDF:', error);
-          resolve('');
-        }
-      });
+    // Extract text from each page
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
 
-      pdfParser.parseBuffer(pdfBuffer);
-    } catch (error) {
-      console.warn('Could not parse PDF:', error);
-      resolve('');
+      // Combine text items
+      const pageText = textContent.items
+        .map((item: any) => {
+          return item.str || '';
+        })
+        .join(' ');
+
+      fullText += pageText + '\n';
     }
-  });
+
+    return fullText.trim();
+  } catch (error) {
+    console.warn('Could not parse PDF:', error);
+    return '';
+  }
 }
 
 export async function POST(request: NextRequest) {
