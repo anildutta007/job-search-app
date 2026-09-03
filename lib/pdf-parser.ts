@@ -1,6 +1,19 @@
-// @ts-ignore - pdf-parse doesn't have proper TypeScript definitions
-import PDFParser from 'pdf-parse/lib/pdf.js';
 import { readFile } from 'fs/promises';
+
+// Dynamic import for pdf-parse to handle module resolution
+let pdfParse: any = null;
+
+async function getPdfParser() {
+  if (!pdfParse) {
+    try {
+      pdfParse = require('pdf-parse');
+    } catch (e) {
+      // Fallback for serverless environments
+      pdfParse = require('pdf-parse/lib/pdf');
+    }
+  }
+  return pdfParse;
+}
 
 /**
  * Extract text content from PDF file or buffer
@@ -16,6 +29,7 @@ export async function extractPdfText(filePathOrBuffer: string | Buffer): Promise
       fileBuffer = filePathOrBuffer;
     }
 
+    const PDFParser = await getPdfParser();
     const pdfData = await PDFParser(fileBuffer, {});
 
     // Combine text from all pages
@@ -49,6 +63,7 @@ export async function extractPdfText(filePathOrBuffer: string | Buffer): Promise
 export async function extractPdfMetadata(filePath: string) {
   try {
     const fileBuffer = await readFile(filePath);
+    const PDFParser = await getPdfParser();
     const pdfData = await PDFParser(fileBuffer);
 
     return {
