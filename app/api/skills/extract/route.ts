@@ -4,7 +4,8 @@ import { CV } from '@/models/CV';
 import { ExtractedSkills } from '@/models/ExtractedSkills';
 import { analyzeSkillsWithClaude } from '@/lib/skill-analyzer';
 import { scrapeLinkedInProfile } from '@/lib/linkedin-scraper';
-import pdfParse from 'pdf-parse';
+
+const pdfParse = require('pdf-parse/lib/pdf.js');
 
 // PDF extraction function
 async function extractPdfText(pdfBase64: string): Promise<string> {
