@@ -4,6 +4,7 @@ import { CVParsedData } from '@/types/cv';
 interface CVDOC extends Document {
   userId: string;
   originalText: string;
+  pdfBase64?: string;
   fileName: string;
   uploadedAt: Date;
   parsedData: CVParsedData;
