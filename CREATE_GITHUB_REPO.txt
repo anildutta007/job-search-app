@@ -1,0 +1,81 @@
+╔════════════════════════════════════════════════════════════════╗
+║        CREATE GITHUB REPOSITORY - STEP BY STEP                ║
+╚════════════════════════════════════════════════════════════════╝
+
+ERROR: "Repository not found"
+REASON: GitHub repo doesn't exist yet
+
+SOLUTION: Create it now!
+
+STEP 1: Go to GitHub
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Open in browser: https://github.com/new
+
+(You may need to login if not already logged in)
+
+STEP 2: Fill in Repository Details
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Repository name:
+  → job-search-app
+
+Description (optional):
+  → AI-powered job search platform with CV analysis and skill matching
+
+Public/Private:
+  → Select "Public" (needed for free Vercel deployment)
+
+IMPORTANT: 
+  ✗ DO NOT check "Initialize this repository with:"
+  ✗ DO NOT add README
+  ✗ DO NOT add .gitignore
+  ✗ DO NOT add license
+  
+  (Leave all three unchecked!)
+
+STEP 3: Click "Create Repository"
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After clicking, you'll see a page with:
+"Quick setup — if you've done this kind of thing before"
+
+STEP 4: Now Push Your Code
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Come back to PowerShell and run:
+
+cd C:\Users\dutt_\job-search-app
+
+git remote add origin https://github.com/anildutta007/job-search-app.git
+
+git branch -M main
+
+git push -u origin main
+
+When asked for password:
+  → Use GitHub Personal Access Token (NOT your password)
+  → Get token: https://github.com/settings/tokens
+  → Click "Generate new token (classic)"
+  → Select "repo" scope only
+  → Copy entire token
+  → Paste when prompted
+
+WHAT TO EXPECT:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+First time: Will prompt for authentication
+  → Paste your Personal Access Token
+
+Then: Shows uploading progress
+  → remote: Receiving objects: X%
+  → remote: Resolving deltas: X%
+
+Finally: Success message
+  → Branch 'main' set up to track 'origin/main'
+
+DONE! ✓
+
+Your code is now on GitHub!
+
+NEXT: Set up Vercel deployment

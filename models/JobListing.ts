@@ -1,7 +1,20 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { JobListing } from '@/types/job';
 
-interface JobListingDoc extends Document, JobListing {}
+interface JobListingDoc extends Document {
+  externalId: string;
+  source: 'indeed' | 'linkedin' | 'glassdoor' | 'other';
+  title: string;
+  company: string;
+  location: string;
+  description: string;
+  requiredSkills: string[];
+  salaryRange?: { min?: number; max?: number; currency?: string };
+  url: string;
+  postedDate: Date;
+  scrapedAt: Date;
+  jobType?: string;
+  experienceLevel?: string;
+}
 
 const JobListingSchema = new Schema<JobListingDoc>({
   externalId: {

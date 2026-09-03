@@ -1,7 +1,14 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { Application } from '@/types/job';
 
-interface ApplicationDoc extends Document, Application {}
+interface ApplicationDoc extends Document {
+  userId: string;
+  jobId: string;
+  status: 'applied' | 'interview' | 'rejected' | 'offer' | 'interested';
+  appliedAt: Date;
+  generatedCvId?: string;
+  generatedCoverId?: string;
+  notes?: string;
+}
 
 const ApplicationSchema = new Schema<ApplicationDoc>({
   userId: {

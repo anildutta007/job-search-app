@@ -1,7 +1,15 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { GeneratedContent } from '@/types/job';
 
-interface GeneratedContentDoc extends Document, GeneratedContent {}
+interface GeneratedContentDoc extends Document {
+  userId: string;
+  jobId: string;
+  type: 'cv' | 'cover_letter';
+  originalContent: string;
+  generatedContent: string;
+  promptUsed?: string;
+  claudeTokensUsed?: number;
+  generatedAt: Date;
+}
 
 const GeneratedContentSchema = new Schema<GeneratedContentDoc>({
   userId: {

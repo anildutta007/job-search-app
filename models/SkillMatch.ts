@@ -1,7 +1,14 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { SkillMatch } from '@/types/job';
 
-interface SkillMatchDoc extends Document, SkillMatch {}
+interface SkillMatchDoc extends Document {
+  userId: string;
+  jobId: string;
+  matchScore: number;
+  matchPercentage: number;
+  matchedSkills: string[];
+  missingSkills: string[];
+  matchedAt: Date;
+}
 
 const SkillMatchSchema = new Schema<SkillMatchDoc>({
   userId: {

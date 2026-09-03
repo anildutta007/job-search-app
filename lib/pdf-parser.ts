@@ -1,4 +1,5 @@
-import * as PDFParser from 'pdf-parse';
+// @ts-ignore - pdf-parse doesn't have proper TypeScript definitions
+import PDFParser from 'pdf-parse/lib/pdf.js';
 import { readFile } from 'fs/promises';
 
 /**
@@ -15,7 +16,7 @@ export async function extractPdfText(filePathOrBuffer: string | Buffer): Promise
       fileBuffer = filePathOrBuffer;
     }
 
-    const pdfData = await PDFParser(fileBuffer);
+    const pdfData = await PDFParser(fileBuffer, {});
 
     // Combine text from all pages
     let fullText = '';

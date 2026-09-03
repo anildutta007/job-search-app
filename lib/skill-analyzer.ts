@@ -145,12 +145,13 @@ export function calculateSkillMatch(
 
   // Convert percentage to 0-10 score
   // 0-20% = 2/10, 20-40% = 4/10, etc.
-  const matchScore = Math.min(10, Math.max(0, (matchPercentage / 10).toFixed(1)) as any);
+  const matchScoreRaw = matchPercentage / 10;
+  const matchScore = Math.min(10, Math.max(0, matchScoreRaw));
 
   return {
     matchedSkills: uniqueMatched,
     missingSkills: uniqueMissing,
     matchPercentage: parseFloat(matchPercentage.toFixed(1)),
-    matchScore: parseFloat(matchScore),
+    matchScore: parseFloat(matchScore.toFixed(1)),
   };
 }
