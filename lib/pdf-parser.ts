@@ -2,11 +2,19 @@ import * as PDFParser from 'pdf-parse';
 import { readFile } from 'fs/promises';
 
 /**
- * Extract text content from PDF file
+ * Extract text content from PDF file or buffer
  */
-export async function extractPdfText(filePath: string): Promise<string> {
+export async function extractPdfText(filePathOrBuffer: string | Buffer): Promise<string> {
   try {
-    const fileBuffer = await readFile(filePath);
+    let fileBuffer: Buffer;
+
+    // Handle both file path and buffer input
+    if (typeof filePathOrBuffer === 'string') {
+      fileBuffer = await readFile(filePathOrBuffer);
+    } else {
+      fileBuffer = filePathOrBuffer;
+    }
+
     const pdfData = await PDFParser(fileBuffer);
 
     // Combine text from all pages

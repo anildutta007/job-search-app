@@ -1,22 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
 import { connectDB } from '@/lib/mongodb';
 import { CV } from '@/models/CV';
-import { extractPdfText, validatePdf } from '@/lib/pdf-parser';
+import { extractPdfText } from '@/lib/pdf-parser';
 import { extractCVBasics } from '@/lib/cv-extractor';
 
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-  },
-};
+const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE || '10485760'); // 10MB default
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || './uploads';
-const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE || '5242880'); // 5MB default
+// Validate if buffer is a valid PDF
+function validatePdfBuffer(buffer: Buffer): boolean {
+  try {
+    // Check PDF magic number
+    const pdfMagic = buffer.toString('ascii', 0, 4);
+    return pdfMagic === '%PDF';
+  } catch {
+    return false;
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,19 +56,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create upload directory if it doesn't exist
-    if (!existsSync(UPLOAD_DIR)) {
-      await mkdir(UPLOAD_DIR, { recursive: true });
-    }
-
-    // Save file temporarily
-    const fileName = `${userId}-${Date.now()}-${file.name}`;
-    const filePath = join(UPLOAD_DIR, fileName);
-    const buffer = await file.arrayBuffer();
-    await writeFile(filePath, Buffer.from(buffer));
+    // Convert file to buffer
+    const buffer = Buffer.from(await file.arrayBuffer());
 
     // Validate PDF
-    const isValidPdf = await validatePdf(filePath);
+    const isValidPdf = validatePdfBuffer(buffer);
     if (!isValidPdf) {
       return NextResponse.json(
         { error: 'Invalid PDF file' },
@@ -77,8 +68,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Extract text from PDF
-    const pdfText = await extractPdfText(filePath);
+    // Extract text from PDF buffer (no disk I/O needed)
+    const pdfText = await extractPdfText(buffer);
 
     if (!pdfText || pdfText.trim().length === 0) {
       return NextResponse.json(
