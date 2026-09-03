@@ -25,18 +25,26 @@ export async function analyzeSkillsWithClaude(
 
 ${combinedText}
 
-Return a JSON object with this exact structure (only include skills that are explicitly mentioned):
+Return a JSON object with this exact structure:
 {
-  "technical": ["list of programming languages and technical skills"],
+  "technical": ["list of programming languages and technical skills mentioned or inferred from experience"],
   "frameworks": ["list of frameworks like React, Django, Spring, etc."],
-  "tools": ["list of tools like Git, Docker, AWS, etc."],
-  "softSkills": ["list of soft skills like communication, leadership, etc."],
-  "languages": ["list of human languages"],
+  "tools": ["list of tools like Git, Docker, AWS, Jira, etc."],
+  "softSkills": ["list of soft skills like communication, leadership, project management, etc."],
+  "languages": ["list of human languages spoken"],
   "yearsOfExperience": number or null,
   "seniority": "junior" or "mid-level" or "senior" or "lead" or null
 }
 
-Be thorough but only include skills that are explicitly mentioned in the text. Remove duplicates. Return ONLY valid JSON, no markdown formatting.`;
+IMPORTANT:
+- Extract skills that are explicitly mentioned (e.g., in a skills section)
+- Also infer skills from job titles and experience descriptions
+- Be thorough and inclusive - if someone worked as a "Full Stack Developer", include common technologies used in that role
+- Look for certifications and endorsements that indicate skills
+- Remove duplicates
+- Always include yearsOfExperience and seniority if you can infer them from the experience section
+- Return ONLY valid JSON, no markdown formatting, no additional text.`;
+
 
   try {
     const result = await callClaudeJSON<SkillAnalysisResult>(prompt, {

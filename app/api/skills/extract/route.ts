@@ -78,11 +78,16 @@ export async function POST(request: NextRequest) {
     if (linkedinUrl) {
       try {
         linkedinData = await scrapeLinkedInProfile(linkedinUrl);
+        console.log(`LinkedIn data scraped: ${linkedinData?.length || 0} characters`);
       } catch (error) {
         console.warn('Could not scrape LinkedIn profile:', error);
         // Continue without LinkedIn data
       }
     }
+
+    // Log extracted text length for debugging
+    console.log(`CV text extracted: ${cvText.length} characters`);
+    console.log(`LinkedIn data available: ${linkedinData ? 'yes' : 'no'}`);
 
     // Analyze skills with Claude
     const skills = await analyzeSkillsWithClaude(cvText, linkedinData);
