@@ -4,24 +4,38 @@ import { CV } from '@/models/CV';
 import { ExtractedSkills } from '@/models/ExtractedSkills';
 import { analyzeSkillsWithClaude } from '@/lib/skill-analyzer';
 import { scrapeLinkedInProfile } from '@/lib/linkedin-scraper';
-
-const pdfParse = require('pdf-parse');
+import PDFParser from 'pdf2json';
 
 // PDF extraction function
 async function extractPdfText(pdfBase64: string): Promise<string> {
-  try {
-    // Convert base64 to Buffer
-    const pdfBuffer = Buffer.from(pdfBase64, 'base64');
+  return new Promise((resolve) => {
+    try {
+      // Convert base64 to Buffer
+      const pdfBuffer = Buffer.from(pdfBase64, 'base64');
 
-    // Parse PDF
-    const data = await pdfParse(pdfBuffer);
+      const pdfParser = new PDFParser(null, 1);
 
-    // Extract text from all pages
-    return data.text || '';
-  } catch (error) {
-    console.warn('Could not parse PDF:', error);
-    return '';
-  }
+      pdfParser.on('pdfParser_dataError', (errData) => {
+        console.warn('PDF parsing error:', errData.parserError);
+        resolve('');
+      });
+
+      pdfParser.on('pdfParser_dataReady', () => {
+        try {
+          const text = pdfParser.getRawTextContent();
+          resolve(text || '');
+        } catch (error) {
+          console.warn('Error extracting text from PDF:', error);
+          resolve('');
+        }
+      });
+
+      pdfParser.parseBuffer(pdfBuffer);
+    } catch (error) {
+      console.warn('Could not parse PDF:', error);
+      resolve('');
+    }
+  });
 }
 
 export async function POST(request: NextRequest) {
