@@ -4,7 +4,24 @@ import { CV } from '@/models/CV';
 import { ExtractedSkills } from '@/models/ExtractedSkills';
 import { analyzeSkillsWithClaude } from '@/lib/skill-analyzer';
 import { scrapeLinkedInProfile } from '@/lib/linkedin-scraper';
-import { callClaudeText } from '@/lib/anthropic-client';
+import pdfParse from 'pdf-parse';
+
+// PDF extraction function
+async function extractPdfText(pdfBase64: string): Promise<string> {
+  try {
+    // Convert base64 to Buffer
+    const pdfBuffer = Buffer.from(pdfBase64, 'base64');
+
+    // Parse PDF
+    const data = await pdfParse(pdfBuffer);
+
+    // Extract text from all pages
+    return data.text || '';
+  } catch (error) {
+    console.warn('Could not parse PDF:', error);
+    return '';
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,19 +51,9 @@ export async function POST(request: NextRequest) {
 
     // If we only have placeholder text, extract from PDF
     if (cvText.includes('[PDF Document:') && cv.pdfBase64) {
-      try {
-        const extractPrompt = `Extract all text content from this PDF file encoded in base64. Return only the extracted text, nothing else.
-
-Base64 PDF: ${cv.pdfBase64}`;
-
-        cvText = await callClaudeText(extractPrompt, {
-          model: 'claude-haiku-4-5-20251001',
-          maxTokens: 4000,
-          temperature: 0,
-        });
-      } catch (error) {
-        console.warn('Could not extract PDF text:', error);
-        // Continue with placeholder text
+      const extractedText = await extractPdfText(cv.pdfBase64);
+      if (extractedText.trim()) {
+        cvText = extractedText;
       }
     }
 
