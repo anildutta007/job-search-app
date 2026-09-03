@@ -1,4 +1,4 @@
-import PDFParser from 'pdf-parse';
+import * as PDFParser from 'pdf-parse';
 import { readFile } from 'fs/promises';
 
 /**
