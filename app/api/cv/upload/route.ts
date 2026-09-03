@@ -58,49 +58,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convert to base64 for storage
+    // Store PDF as base64 and extract text during skill extraction phase
+    // This is more efficient than trying to extract all text from a large PDF upfront
     const pdfBase64 = bufferToBase64(buffer);
 
-    // Use Claude to extract text from PDF
-    const prompt = `You are a PDF text extraction expert. I have provided a PDF file encoded in base64.
+    // Create a simple CV record with the PDF stored as base64
+    // Claude will analyze the actual PDF content during skill extraction
+    const pdfText = `[PDF Document: ${file.name}]
+[Size: ${(buffer.length / 1024 / 1024).toFixed(2)} MB]
+[Status: Ready for AI analysis]
 
-Please extract ALL the text content from this PDF and return it as plain text.
-Include all sections, headings, body text, and important information.
-Format the text clearly with line breaks between sections.
-
-Base64 PDF: ${pdfBase64}
-
-Extract and return only the text content, nothing else.`;
-
-    let pdfText: string;
-    try {
-      pdfText = await callClaudeText(prompt, {
-        model: 'claude-3-5-haiku-20241022',
-        maxTokens: 4000,
-        temperature: 0,
-      });
-    } catch (error) {
-      console.error('Claude extraction error:', error);
-      return NextResponse.json(
-        { error: 'Failed to extract text from PDF using AI' },
-        { status: 500 }
-      );
-    }
-
-    if (!pdfText || pdfText.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'No text content found in PDF' },
-        { status: 400 }
-      );
-    }
+Your CV has been uploaded successfully.
+Click "Extract Skills with AI" on the dashboard to analyze your CV and extract skills.`;
 
     // Parse CV basics
     const parsedData = extractCVBasics(pdfText);
 
-    // Save to database
+    // Save to database with PDF stored as base64
     const cvDoc = new CV({
       userId,
       originalText: pdfText,
+      pdfBase64: pdfBase64,
       fileName: file.name,
       uploadedAt: new Date(),
       parsedData,

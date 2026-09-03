@@ -19,6 +19,10 @@ const CVSchema = new Schema<CVDOC>({
     type: String,
     required: true,
   },
+  pdfBase64: {
+    type: String,
+    default: null,
+  },
   fileName: {
     type: String,
     required: true,
