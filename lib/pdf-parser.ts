@@ -1,95 +1,34 @@
-import { readFile } from 'fs/promises';
-
-// Dynamic import for pdf-parse to handle module resolution
-let pdfParse: any = null;
-
-async function getPdfParser() {
-  if (!pdfParse) {
-    try {
-      pdfParse = require('pdf-parse');
-    } catch (e) {
-      // Fallback for serverless environments
-      pdfParse = require('pdf-parse/lib/pdf');
-    }
-  }
-  return pdfParse;
-}
-
 /**
- * Extract text content from PDF file or buffer
+ * Validate if buffer is a valid PDF
  */
-export async function extractPdfText(filePathOrBuffer: string | Buffer): Promise<string> {
+export function validatePdfBuffer(buffer: Buffer): boolean {
   try {
-    let fileBuffer: Buffer;
-
-    // Handle both file path and buffer input
-    if (typeof filePathOrBuffer === 'string') {
-      fileBuffer = await readFile(filePathOrBuffer);
-    } else {
-      fileBuffer = filePathOrBuffer;
-    }
-
-    const PDFParser = await getPdfParser();
-    const pdfData = await PDFParser(fileBuffer, {});
-
-    // Combine text from all pages
-    let fullText = '';
-
-    if (pdfData.text) {
-      fullText = pdfData.text;
-    } else if (pdfData.version && pdfData.pages) {
-      // Fallback: extract text from individual pages
-      for (const page of pdfData.pages) {
-        if (typeof page === 'object' && 'text' in page) {
-          fullText += (page as any).text + '\n';
-        }
-      }
-    }
-
-    if (!fullText) {
-      throw new Error('No text content found in PDF');
-    }
-
-    return fullText.trim();
-  } catch (error) {
-    console.error('Error parsing PDF:', error);
-    throw error;
-  }
-}
-
-/**
- * Extract metadata from PDF (if available)
- */
-export async function extractPdfMetadata(filePath: string) {
-  try {
-    const fileBuffer = await readFile(filePath);
-    const PDFParser = await getPdfParser();
-    const pdfData = await PDFParser(fileBuffer);
-
-    return {
-      pages: pdfData.numpages || pdfData.version,
-      title: (pdfData.info as any)?.Title || null,
-      author: (pdfData.info as any)?.Author || null,
-      subject: (pdfData.info as any)?.Subject || null,
-      createdDate: (pdfData.info as any)?.CreationDate || null,
-    };
-  } catch (error) {
-    console.error('Error extracting PDF metadata:', error);
-    return null;
-  }
-}
-
-/**
- * Validate if file is a valid PDF
- */
-export async function validatePdf(filePath: string): Promise<boolean> {
-  try {
-    const fileBuffer = await readFile(filePath);
     // Check PDF magic number
-    const pdfMagic = fileBuffer.toString('ascii', 0, 4);
+    const pdfMagic = buffer.toString('ascii', 0, 4);
     return pdfMagic === '%PDF';
   } catch (error) {
     console.error('Error validating PDF:', error);
     return false;
   }
+}
+
+/**
+ * Convert PDF buffer to base64 for storage
+ */
+export function bufferToBase64(buffer: Buffer): string {
+  return buffer.toString('base64');
+}
+
+/**
+ * Convert base64 back to buffer
+ */
+export function base64ToBuffer(base64: string): Buffer {
+  return Buffer.from(base64, 'base64');
+}
+
+/**
+ * Get file size in MB
+ */
+export function getFileSizeInMB(buffer: Buffer): number {
+  return buffer.length / (1024 * 1024);
 }

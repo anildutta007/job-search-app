@@ -1,21 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import { CV } from '@/models/CV';
-import { extractPdfText } from '@/lib/pdf-parser';
+import { validatePdfBuffer, bufferToBase64 } from '@/lib/pdf-parser';
 import { extractCVBasics } from '@/lib/cv-extractor';
+import { callClaudeText } from '@/lib/anthropic-client';
 
 const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE || '10485760'); // 10MB default
-
-// Validate if buffer is a valid PDF
-function validatePdfBuffer(buffer: Buffer): boolean {
-  try {
-    // Check PDF magic number
-    const pdfMagic = buffer.toString('ascii', 0, 4);
-    return pdfMagic === '%PDF';
-  } catch {
-    return false;
-  }
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -68,8 +58,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Extract text from PDF buffer (no disk I/O needed)
-    const pdfText = await extractPdfText(buffer);
+    // Convert to base64 for storage
+    const pdfBase64 = bufferToBase64(buffer);
+
+    // Use Claude to extract text from PDF
+    const prompt = `You are a PDF text extraction expert. I have provided a PDF file encoded in base64.
+
+Please extract ALL the text content from this PDF and return it as plain text.
+Include all sections, headings, body text, and important information.
+Format the text clearly with line breaks between sections.
+
+Base64 PDF: ${pdfBase64}
+
+Extract and return only the text content, nothing else.`;
+
+    let pdfText: string;
+    try {
+      pdfText = await callClaudeText(prompt, {
+        model: 'claude-3-5-haiku-20241022',
+        maxTokens: 4000,
+        temperature: 0,
+      });
+    } catch (error) {
+      console.error('Claude extraction error:', error);
+      return NextResponse.json(
+        { error: 'Failed to extract text from PDF using AI' },
+        { status: 500 }
+      );
+    }
 
     if (!pdfText || pdfText.trim().length === 0) {
       return NextResponse.json(
