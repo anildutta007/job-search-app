@@ -1,0 +1,141 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║                 QUICK DEPLOYMENT CHECKLIST                              ║
+║              Get Your Job Search App Live in 10 Minutes                  ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+PREREQUISITES (5 min):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+☐ 1. Create MongoDB Atlas Account
+     URL: https://www.mongodb.com/cloud/atlas
+     Create free M0 cluster
+     Get connection string (mongodb+srv://...)
+     
+☐ 2. Get Anthropic API Key
+     URL: https://console.anthropic.com/
+     Create API key (starts with sk-ant-)
+     
+☐ 3. GitHub Account
+     URL: https://github.com/
+     Create if you don't have one
+
+☐ 4. Vercel Account
+     URL: https://vercel.com/
+     Sign up with GitHub
+
+GITHUB SETUP (2 min):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+☐ 1. Create Repository
+     Go: https://github.com/new
+     Name: job-search-app
+     Public repo
+     Create (skip initialization)
+
+☐ 2. Push Code
+     In PowerShell:
+     cd C:\Users\dutt_\job-search-app
+     git remote add origin https://github.com/YOUR_USERNAME/job-search-app.git
+     git branch -M main
+     git push -u origin main
+     
+     When prompted for password:
+     Use GitHub Personal Access Token (not your password)
+     Get token: https://github.com/settings/tokens
+
+VERCEL DEPLOYMENT (3 min):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+☐ 1. Go to Vercel
+     URL: https://vercel.com/
+
+☐ 2. Click "New Project"
+
+☐ 3. Select GitHub account and repo
+     Select: job-search-app
+
+☐ 4. Import Project
+     Framework: Next.js (auto-detected)
+     Root: ./
+     Click "Deploy"
+     Wait 2-3 minutes...
+
+CONFIGURE ENVIRONMENT (2 min):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+☐ 1. After deployment, go to Settings → Environment Variables
+
+☐ 2. Add these variables:
+     
+     MONGODB_URI = (from MongoDB Atlas)
+     Example: mongodb+srv://user:pass@cluster.mongodb.net/job-search-app
+     
+     ANTHROPIC_API_KEY = (from Anthropic Console)
+     Example: sk-ant-v0-xxxxxxxxxxxx
+     
+     NEXT_PUBLIC_API_URL = (your Vercel domain)
+     Example: https://job-search-app-xyz.vercel.app
+
+☐ 3. Click "Save"
+
+☐ 4. Go to Deployments → Click latest → Redeploy
+
+GET YOUR LIVE URL:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ After redeploy completes, your URL is at the top of Vercel dashboard
+✓ Format: https://job-search-app-xyz.vercel.app
+✓ This is your live, public app!
+
+TEST YOUR APP:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+☐ 1. Visit your URL
+☐ 2. Click "Upload CV Now"
+☐ 3. Upload a test PDF resume
+☐ 4. See CV summary on dashboard
+☐ 5. Click "Extract Skills with AI"
+☐ 6. See skills categorized!
+
+AUTOMATIC UPDATES:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+From now on:
+1. Make changes locally
+2. git add . && git commit -m "message"
+3. git push origin main
+4. Vercel automatically deploys!
+   (No manual steps needed)
+
+TROUBLESHOOTING:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+API Errors?
+→ Check Vercel Deployments > Logs tab
+→ Verify environment variables are set
+→ Confirm MongoDB/Anthropic access
+
+Can't Upload Files?
+→ Check browser console for errors
+→ Verify MONGODB_URI is correct
+→ Test API endpoint: /api/cv
+
+Skills Not Extracting?
+→ Check Vercel Logs
+→ Verify ANTHROPIC_API_KEY is correct
+→ Ensure you have API credits
+
+Need Help?
+→ See DEPLOYMENT_GUIDE.md for detailed steps
+→ Check Vercel logs for error messages
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎉 That's it! Your app is now live and automatically deployed!
+
+Every GitHub push = Automatic Vercel deployment
+No manual steps needed after initial setup
+
+Next: Continue building Phase 2 (job search & matching)
+
+═══════════════════════════════════════════════════════════════════════════════
