@@ -67,8 +67,14 @@ export async function POST(request: NextRequest) {
     // If we only have placeholder text, extract from PDF
     if (cvText.includes('[PDF Document:') && cv.pdfBase64) {
       const extractedText = await extractPdfText(cv.pdfBase64);
-      if (extractedText.trim()) {
+      console.log(`PDF extraction result: ${extractedText.length} characters`);
+      console.log(`First 200 chars: ${extractedText.substring(0, 200)}`);
+
+      if (extractedText.trim().length > 100) {
         cvText = extractedText;
+        console.log('Using extracted PDF text');
+      } else {
+        console.log('Extracted text too short, using placeholder');
       }
     }
 
@@ -108,6 +114,11 @@ export async function POST(request: NextRequest) {
       skillsId: saved._id,
       extractedSkills: skills,
       analyzedAt: saved.analyzedAt,
+      debug: {
+        cvTextLength: cvText.length,
+        linkedinDataAvailable: !!linkedinData,
+        hasExtractedText: !cvText.includes('[PDF Document:'),
+      },
     });
   } catch (error) {
     console.error('Error extracting skills:', error);
