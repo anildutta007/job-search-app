@@ -4,10 +4,9 @@ import { CV } from '@/models/CV';
 import { ExtractedSkills } from '@/models/ExtractedSkills';
 import { analyzeSkillsWithClaude } from '@/lib/skill-analyzer';
 import { scrapeLinkedInProfile } from '@/lib/linkedin-scraper';
-import * as pdfjs from 'pdfjs-dist/legacy/build/pdf';
 
-// For Node.js environment, we don't need to set up a worker
-// (workers are only needed for browser-side PDF.js)
+// Use dynamic require for pdfjs-dist to avoid build issues
+const pdfjs = require('pdfjs-dist/build/pdf');
 
 // PDF extraction function
 async function extractPdfText(pdfBase64: string): Promise<string> {
