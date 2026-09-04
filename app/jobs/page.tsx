@@ -42,7 +42,7 @@ function JobsContent() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState<'all' | 'excellent' | 'good' | 'fair'>(
+  const [filter, setFilter] = useState<'all' | 'excellent' | 'good' | 'fair' | 'poor'>(
     'all'
   );
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -88,6 +88,7 @@ function JobsContent() {
     if (filter === 'excellent') return score >= 8;
     if (filter === 'good') return score >= 6 && score < 8;
     if (filter === 'fair') return score >= 4 && score < 6;
+    if (filter === 'poor') return score < 4;
     return false;
   });
 
@@ -123,7 +124,7 @@ function JobsContent() {
 
         {/* Filter Tabs */}
         <div className="mb-6 flex gap-3 flex-wrap">
-          {(['all', 'excellent', 'good', 'fair'] as const).map((tab) => (
+          {(['all', 'excellent', 'good', 'fair', 'poor'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setFilter(tab)}
@@ -140,6 +141,7 @@ function JobsContent() {
                 if (tab === 'excellent') return score >= 8;
                 if (tab === 'good') return score >= 6 && score < 8;
                 if (tab === 'fair') return score >= 4 && score < 6;
+                if (tab === 'poor') return score < 4;
                 return false;
               }).length}
               )
