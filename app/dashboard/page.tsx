@@ -151,12 +151,20 @@ function DashboardContent() {
               Job Search Dashboard
             </h1>
           </div>
-          <Link
-            href="/upload"
-            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            Upload New CV
-          </Link>
+          <div className="flex gap-3">
+            <Link
+              href={`/jobs?cvId=${cvId}`}
+              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+            >
+              🔍 Find Jobs
+            </Link>
+            <Link
+              href="/upload"
+              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold"
+            >
+              Upload New CV
+            </Link>
+          </div>
         </div>
 
         {error && (
