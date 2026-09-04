@@ -27,7 +27,7 @@ const JobSchema = new Schema<JobDoc>({
   },
   source: {
     type: String,
-    enum: ['indeed', 'linkedin', 'glassdoor', 'manual', 'mock', 'other'],
+    enum: ['indeed', 'linkedin', 'glassdoor', 'manual', 'mock', 'other', 'jsearch'],
     required: true,
   },
   title: {
