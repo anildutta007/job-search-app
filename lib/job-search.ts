@@ -12,14 +12,16 @@ export async function searchJobsJSearch(
 
   try {
     if (!process.env.JSEARCH_API_KEY) {
-      console.warn('JSearch API key not configured. Using mock jobs.');
+      console.warn('❌ JSearch API key NOT FOUND. Using mock jobs.');
       return generateMockJobs(limit);
     }
+
+    console.log('✅ JSearch API key found');
 
     // Create search query from top skills
     const query = skills.slice(0, 2).join(' ');
 
-    console.log(`Searching JSearch for: "${query}" in UK`);
+    console.log(`🔍 Searching JSearch for: "${query}" in UK`);
 
     const options = {
       method: 'GET',
@@ -38,15 +40,21 @@ export async function searchJobsJSearch(
 
     const response = await fetch(searchUrl.toString(), options);
 
+    console.log(`📡 JSearch API Response Status: ${response.status}`);
+
     if (!response.ok) {
-      console.warn(
-        `JSearch API error: ${response.status}. Falling back to mock jobs.`
+      const errorText = await response.text();
+      console.error(
+        `❌ JSearch API error: ${response.status} - ${errorText}`
       );
+      console.warn('Falling back to mock jobs.');
       return generateMockJobs(limit);
     }
 
     const data = await response.json();
     const apiJobs = data.data || [];
+
+    console.log(`✅ JSearch returned ${apiJobs.length} jobs`);
 
     // Transform API response to our format
     for (const apiJob of apiJobs.slice(0, limit)) {
