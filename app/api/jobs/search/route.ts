@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
           if (
             !requiredSkills ||
             requiredSkills.length === 0 ||
-            job.source === 'mock'
+            (job.source as string) === 'mock'
           ) {
             // For mock jobs, extract skills from description
             requiredSkills = await extractJobRequiredSkills(job.description);
@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
     const userId = request.nextUrl.searchParams.get('userId');
 
     if (!cvId || !userId) {
-      return NextRequest.json(
+      return NextResponse.json(
         { error: 'CV ID and User ID are required' },
         { status: 400 }
       );
