@@ -39,9 +39,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!file.type.includes('pdf')) {
+    // Accept PDF or DOCX files
+    const isPdf = file.type === 'application/pdf';
+    const isDocx =
+      file.type ===
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      file.name.endsWith('.docx');
+
+    if (!isPdf && !isDocx) {
       return NextResponse.json(
-        { error: 'Only PDF files are supported' },
+        { error: 'Only PDF and Word (.docx) files are supported' },
         { status: 400 }
       );
     }
@@ -49,22 +56,24 @@ export async function POST(request: NextRequest) {
     // Convert file to buffer
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // Validate PDF
-    const isValidPdf = validatePdfBuffer(buffer);
-    if (!isValidPdf) {
-      return NextResponse.json(
-        { error: 'Invalid PDF file' },
-        { status: 400 }
-      );
+    // Validate PDF (DOCX files are assumed valid)
+    if (isPdf) {
+      const isValidPdf = validatePdfBuffer(buffer);
+      if (!isValidPdf) {
+        return NextResponse.json(
+          { error: 'Invalid PDF file' },
+          { status: 400 }
+        );
+      }
     }
 
-    // Store PDF as base64 and extract text during skill extraction phase
-    // This is more efficient than trying to extract all text from a large PDF upfront
-    const pdfBase64 = bufferToBase64(buffer);
+    // Store file as base64 and extract text during skill extraction phase
+    // This is more efficient than trying to extract all text upfront
+    const fileBase64 = bufferToBase64(buffer);
 
-    // Create a simple CV record with the PDF stored as base64
-    // Claude will analyze the actual PDF content during skill extraction
-    const pdfText = `[PDF Document: ${file.name}]
+    // Create a simple CV record with file stored as base64
+    // Claude will analyze the actual content during skill extraction
+    const pdfText = `[Document: ${file.name}]
 [Size: ${(buffer.length / 1024 / 1024).toFixed(2)} MB]
 [Status: Ready for AI analysis]
 
@@ -74,11 +83,11 @@ Click "Extract Skills with AI" on the dashboard to analyze your CV and extract s
     // Parse CV basics
     const parsedData = extractCVBasics(pdfText);
 
-    // Save to database with PDF stored as base64
+    // Save to database with file stored as base64
     const cvDoc = new CV({
       userId,
       originalText: pdfText,
-      pdfBase64: pdfBase64,
+      pdfBase64: fileBase64,
       fileName: file.name,
       uploadedAt: new Date(),
       parsedData,

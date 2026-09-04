@@ -5,36 +5,31 @@ import { ExtractedSkills } from '@/models/ExtractedSkills';
 import { analyzeSkillsWithClaude } from '@/lib/skill-analyzer';
 import { scrapeLinkedInProfile } from '@/lib/linkedin-scraper';
 
-// Use dynamic require for pdfjs-dist to avoid build issues
-const pdfjs = require('pdfjs-dist/build/pdf');
+// Use mammoth for DOCX extraction
+const mammoth = require('mammoth');
 
-// PDF extraction function
-async function extractPdfText(pdfBase64: string): Promise<string> {
+// DOCX extraction function
+async function extractDocxText(docxBase64: string): Promise<string> {
   try {
     // Convert base64 to Buffer
-    const pdfBuffer = Buffer.from(pdfBase64, 'base64');
+    const docxBuffer = Buffer.from(docxBase64, 'base64');
 
-    // Load PDF document
-    const pdf = await pdfjs.getDocument({ data: pdfBuffer }).promise;
+    // Extract text from DOCX
+    const result = await mammoth.extractRawText({ buffer: docxBuffer });
+    return result.value.trim();
+  } catch (error) {
+    console.warn('Could not parse DOCX:', error);
+    return '';
+  }
+}
 
-    let fullText = '';
-
-    // Extract text from each page
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-
-      // Combine text items
-      const pageText = textContent.items
-        .map((item: any) => {
-          return item.str || '';
-        })
-        .join(' ');
-
-      fullText += pageText + '\n';
-    }
-
-    return fullText.trim();
+// Fallback PDF extraction (simple text-based)
+async function extractPdfText(pdfBase64: string): Promise<string> {
+  try {
+    // For now, return empty - DOCX is preferred
+    // In future, can add pdf-parse or similar
+    console.warn('PDF extraction not yet supported, please use DOCX format');
+    return '';
   } catch (error) {
     console.warn('Could not parse PDF:', error);
     return '';
@@ -67,15 +62,26 @@ export async function POST(request: NextRequest) {
 
     let cvText = cv.originalText;
 
-    // If we only have placeholder text, extract from PDF
-    if (cvText.includes('[PDF Document:') && cv.pdfBase64) {
-      const extractedText = await extractPdfText(cv.pdfBase64);
-      console.log(`PDF extraction result: ${extractedText.length} characters`);
+    // If we only have placeholder text, extract from document
+    if ((cvText.includes('[PDF Document:') || cvText.includes('[Document:')) && cv.pdfBase64) {
+      console.log(`Extracting text from ${cv.fileName}...`);
+
+      let extractedText = '';
+
+      // Check file type
+      if (cv.fileName.toLowerCase().endsWith('.docx')) {
+        extractedText = await extractDocxText(cv.pdfBase64);
+        console.log(`DOCX extraction result: ${extractedText.length} characters`);
+      } else {
+        extractedText = await extractPdfText(cv.pdfBase64);
+        console.log(`PDF extraction result: ${extractedText.length} characters`);
+      }
+
       console.log(`First 200 chars: ${extractedText.substring(0, 200)}`);
 
-      if (extractedText.trim().length > 100) {
+      if (extractedText.trim().length > 50) {
         cvText = extractedText;
-        console.log('Using extracted PDF text');
+        console.log('Using extracted document text');
       } else {
         console.log('Extracted text too short, using placeholder');
       }

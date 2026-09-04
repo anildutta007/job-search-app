@@ -43,6 +43,15 @@ export default function UploadPage() {
     }
   };
 
+  const isValidFile = (file: File): boolean => {
+    const isPdf = file.type === 'application/pdf';
+    const isDocx =
+      file.type ===
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      file.name.endsWith('.docx');
+    return isPdf || isDocx;
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -50,11 +59,11 @@ export default function UploadPage() {
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const droppedFile = e.dataTransfer.files[0];
-      if (droppedFile.type === 'application/pdf') {
+      if (isValidFile(droppedFile)) {
         setFile(droppedFile);
         setError('');
       } else {
-        setError('Please upload a PDF file');
+        setError('Please upload a PDF or Word (.docx) file');
       }
     }
   };
@@ -62,11 +71,11 @@ export default function UploadPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
-      if (selectedFile.type === 'application/pdf') {
+      if (isValidFile(selectedFile)) {
         setFile(selectedFile);
         setError('');
       } else {
-        setError('Please upload a PDF file');
+        setError('Please upload a PDF or Word (.docx) file');
         setFile(null);
       }
     }
@@ -180,7 +189,7 @@ export default function UploadPage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf"
+                accept=".pdf,.docx"
                 onChange={handleFileChange}
                 className="hidden"
                 disabled={loading}
@@ -188,10 +197,10 @@ export default function UploadPage() {
 
               <div className="text-4xl mb-4">📄</div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Drop your PDF here or click to browse
+                Drop your CV here or click to browse
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
-                Only PDF files are supported (max 10MB)
+                PDF or Word (.docx) files supported (max 10MB)
               </p>
 
               {file && (
