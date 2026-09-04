@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import { ExtractedSkills } from '@/models/ExtractedSkills';
 import { SkillMatch } from '@/models/SkillMatch';
-import { generateMockJobs } from '@/lib/job-search';
+import { searchJobsJSearch } from '@/lib/job-search';
 import { calculateSkillMatch } from '@/lib/skill-matcher';
 import { extractJobRequiredSkills } from '@/lib/skill-analyzer';
 
@@ -32,8 +32,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate mock jobs (in production, search from Indeed, LinkedIn, etc.)
-    const jobs = generateMockJobs(20);
+    // Search for real jobs from JSearch API (UK only)
+    const userSkills = extractedSkills.extractedSkills;
+    const allUserSkills = [
+      ...userSkills.technical,
+      ...userSkills.frameworks,
+      ...userSkills.tools,
+    ];
+    const jobs = await searchJobsJSearch(allUserSkills, 20);
 
     // Extract required skills from each job and calculate matches
     const jobsWithMatches = await Promise.all(

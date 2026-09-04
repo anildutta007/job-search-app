@@ -1,109 +1,141 @@
 import { JobListing } from '@/types/job';
 
 /**
- * Search for jobs based on extracted skills
- * Combines results from multiple job sources
+ * Search for jobs using JSearch API (RapidAPI)
+ * Searches for UK jobs by default
  */
-export async function searchJobsMultipleSources(
+export async function searchJobsJSearch(
   skills: string[],
-  location?: string,
-  limit: number = 50
-): Promise<JobListing[]> {
-  try {
-    const allJobs: JobListing[] = [];
-
-    // Search from multiple sources in parallel
-    const [indeedJobs, linkedinJobs] = await Promise.allSettled([
-      searchIndeedJobs(skills, location, Math.ceil(limit / 2)),
-      searchLinkedInJobs(skills, location, Math.ceil(limit / 2)),
-    ]);
-
-    if (indeedJobs.status === 'fulfilled') {
-      allJobs.push(...indeedJobs.value);
-    }
-
-    if (linkedinJobs.status === 'fulfilled') {
-      allJobs.push(...linkedinJobs.value);
-    }
-
-    // Remove duplicates (by URL)
-    const uniqueJobs = Array.from(
-      new Map(allJobs.map((job) => [job.url, job])).values()
-    );
-
-    // Sort by posted date (newest first)
-    uniqueJobs.sort(
-      (a, b) =>
-        new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime()
-    );
-
-    return uniqueJobs.slice(0, limit);
-  } catch (error) {
-    console.error('Error searching jobs:', error);
-    throw error;
-  }
-}
-
-/**
- * Search Indeed for jobs based on keywords
- * Note: Using web scraping as Indeed API is restricted
- */
-export async function searchIndeedJobs(
-  skills: string[],
-  location?: string,
-  limit: number = 25
+  limit: number = 20
 ): Promise<JobListing[]> {
   const jobs: JobListing[] = [];
 
   try {
+    if (!process.env.JSEARCH_API_KEY) {
+      console.warn('JSearch API key not configured. Using mock jobs.');
+      return generateMockJobs(limit);
+    }
+
     // Create search query from top skills
-    const query = skills.slice(0, 3).join(' OR ');
-    const queryParam = encodeURIComponent(query);
-    const locationParam = location ? `&l=${encodeURIComponent(location)}` : '';
+    const query = skills.slice(0, 2).join(' ');
 
-    const url = `https://www.indeed.com/jobs?q=${queryParam}${locationParam}&limit=${limit}`;
+    console.log(`Searching JSearch for: "${query}" in UK`);
 
-    console.log('Searching Indeed:', url);
+    const options = {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-key': process.env.JSEARCH_API_KEY,
+        'x-rapidapi-host': 'jsearch.p.rapidapi.com',
+      },
+    };
 
-    // Note: In production, use official Indeed API if available
-    // For now, this is a placeholder that would require actual web scraping implementation
-    // or API integration
+    const searchUrl = new URL('https://jsearch.p.rapidapi.com/search');
+    searchUrl.searchParams.append('query', `${query} UK`);
+    searchUrl.searchParams.append('page', '1');
+    searchUrl.searchParams.append('num_pages', '1');
+    searchUrl.searchParams.append('country', 'GB'); // UK only
+    searchUrl.searchParams.append('date_posted', 'month'); // Last month
 
+    const response = await fetch(searchUrl.toString(), options);
+
+    if (!response.ok) {
+      console.warn(
+        `JSearch API error: ${response.status}. Falling back to mock jobs.`
+      );
+      return generateMockJobs(limit);
+    }
+
+    const data = await response.json();
+    const apiJobs = data.data || [];
+
+    // Transform API response to our format
+    for (const apiJob of apiJobs.slice(0, limit)) {
+      jobs.push({
+        externalId: apiJob.job_id,
+        source: 'jsearch',
+        title: apiJob.job_title,
+        company: apiJob.employer_name,
+        location: apiJob.job_city
+          ? `${apiJob.job_city}, ${apiJob.job_country}`
+          : apiJob.job_country,
+        description:
+          apiJob.job_description || 'No description available',
+        requiredSkills: extractSkillsFromDescription(
+          apiJob.job_description || ''
+        ),
+        url: apiJob.job_apply_link || apiJob.job_google_link || '#',
+        postedDate: new Date(apiJob.job_posted_at_datetime_utc),
+        scrapedAt: new Date(),
+        jobType: apiJob.job_employment_type,
+        salaryRange:
+          apiJob.job_min_salary && apiJob.job_max_salary
+            ? {
+                min: apiJob.job_min_salary,
+                max: apiJob.job_max_salary,
+                currency: apiJob.job_salary_currency || 'GBP',
+              }
+            : undefined,
+      });
+    }
+
+    console.log(`Found ${jobs.length} jobs from JSearch`);
     return jobs;
   } catch (error) {
-    console.error('Error searching Indeed:', error);
-    return jobs;
+    console.error('Error searching JSearch:', error);
+    console.log('Falling back to mock jobs');
+    return generateMockJobs(limit);
   }
 }
 
 /**
- * Search LinkedIn Jobs for matching positions
+ * Extract skills from job description using simple keyword matching
  */
-export async function searchLinkedInJobs(
-  skills: string[],
-  location?: string,
-  limit: number = 25
-): Promise<JobListing[]> {
-  const jobs: JobListing[] = [];
+function extractSkillsFromDescription(description: string): string[] {
+  const commonSkills = [
+    'JavaScript',
+    'TypeScript',
+    'Python',
+    'Java',
+    'React',
+    'Node.js',
+    'AWS',
+    'Docker',
+    'Kubernetes',
+    'PostgreSQL',
+    'MongoDB',
+    'Git',
+    'REST API',
+    'GraphQL',
+    'CI/CD',
+    'Agile',
+    'C#',
+    '.NET',
+    'Vue.js',
+    'Angular',
+    'SQL',
+    'HTML',
+    'CSS',
+    'Bootstrap',
+    'Tailwind',
+    'Linux',
+    'Terraform',
+    'Jenkins',
+    'GitLab',
+    'Communication',
+    'Leadership',
+    'Problem Solving',
+  ];
 
-  try {
-    // Create search query from top skills
-    const query = skills.slice(0, 3).join(' OR ');
-    const queryParam = encodeURIComponent(query);
-    const locationParam = location ? `&location=${encodeURIComponent(location)}` : '';
+  const foundSkills: string[] = [];
+  const descLower = description.toLowerCase();
 
-    const url = `https://www.linkedin.com/jobs/search/?keywords=${queryParam}${locationParam}`;
-
-    console.log('Searching LinkedIn:', url);
-
-    // Note: LinkedIn jobs scraping requires handling of dynamic content
-    // For now, this is a placeholder that would require actual implementation
-
-    return jobs;
-  } catch (error) {
-    console.error('Error searching LinkedIn jobs:', error);
-    return jobs;
+  for (const skill of commonSkills) {
+    if (descLower.includes(skill.toLowerCase())) {
+      foundSkills.push(skill);
+    }
   }
+
+  return [...new Set(foundSkills)]; // Remove duplicates
 }
 
 /**
