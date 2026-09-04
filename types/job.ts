@@ -7,7 +7,7 @@ export interface SalaryRange {
 export interface JobListing {
   _id?: string;
   externalId: string;
-  source: 'indeed' | 'linkedin' | 'glassdoor' | 'other';
+  source: 'indeed' | 'linkedin' | 'glassdoor' | 'other' | 'jsearch' | 'mock';
   title: string;
   company: string;
   location: string;
